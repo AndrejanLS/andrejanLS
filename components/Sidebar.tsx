@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   // Calculate storage usage
-  const MAX_TOTAL_SIZE = 100 * 1024 * 1024; // 100MB Safe Limit
+  const MAX_TOTAL_SIZE = 30 * 1024 * 1024; // 30MB Safe Limit for Tokens
   const currentTotalSize = files.reduce((acc, f) => acc + f.size, 0);
   const usagePercentage = Math.min((currentTotalSize / MAX_TOTAL_SIZE) * 100, 100);
   const isNearLimit = usagePercentage > 90;
@@ -174,8 +174,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Storage Usage Indicator */}
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700 mb-2">
              <div className="flex justify-between items-center text-[10px] text-slate-400 mb-1.5">
-                <span className="font-medium">Armazenamento</span>
-                <span>{formatSize(currentTotalSize)} / 100 MB</span>
+                <span className="font-medium">Armazenamento (IA)</span>
+                <span>{formatSize(currentTotalSize)} / 30 MB</span>
              </div>
              <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
                 <div 
@@ -184,7 +184,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 ></div>
              </div>
              {isNearLimit && (
-               <p className="text-[10px] text-red-400 mt-1.5">Espaço cheio. Remova arquivos antigos.</p>
+               <p className="text-[10px] text-red-400 mt-1.5">Capacidade da IA cheia. Remova arquivos.</p>
              )}
           </div>
 

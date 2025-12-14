@@ -9,15 +9,16 @@ import { geminiService } from './services/geminiService';
 const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
 // Constants for file limits
-// NOTE: 
-// 1. Browser String Limit (V8) ~512MB
-// 2. Gemini 2.5 Flash Context Window ~1 Million Tokens.
-//    - 1M Tokens is roughly 4MB of pure text.
-//    - PDFs carry overhead. 100MB of PDF can easily exceed 1M tokens if text-dense.
-//    - We set a heuristic limit of 100MB to try and stay within both bounds, 
-//      but the API error handler is the ultimate gatekeeper.
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB per file
-const MAX_TOTAL_SIZE = 100 * 1024 * 1024; // 100MB total heuristic limit
+// CRITICAL ADJUSTMENT:
+// The Gemini 2.5 Flash model has a 1 Million Token Context Window.
+// - 1 Token ~= 4 chars.
+// - 1 Million Tokens ~= 4MB of pure raw text.
+// - PDF files have overhead (images, formatting), but dense technical manuals are text-heavy.
+// - 100MB of PDFs resulted in Token Limit Exceeded errors.
+// - We are lowering the limit to 30MB. This is a conservative heuristic to keep the
+//   extracted text payload under the ~1M token limit (approx 4MB pure text + overhead).
+const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB per file max
+const MAX_TOTAL_SIZE = 30 * 1024 * 1024; // 30MB total storage limit for context safety
 
 const App: React.FC = () => {
   // Authentication State
@@ -88,7 +89,7 @@ const App: React.FC = () => {
     }
 
     if (potentialNewSize > MAX_TOTAL_SIZE) {
-      alert(`Erro: Limite de Segurança Excedido.\n\nPara evitar erros de capacidade da IA (Tokens), limitamos o upload a 100MB.\n\nEspaço atual: ${(currentTotalSize/1024/1024).toFixed(1)}MB\nNecessário: ${(potentialNewSize/1024/1024).toFixed(1)}MB\n\nPor favor, selecione menos arquivos ou remova arquivos antigos.`);
+      alert(`Erro: Limite de Capacidade da IA Excedido.\n\nPara garantir que a IA consiga ler todos os manuais (Limite de 1 Milhão de Tokens), o tamanho total dos arquivos não pode passar de 30MB.\n\nEspaço atual: ${(currentTotalSize/1024/1024).toFixed(1)}MB\nNecessário: ${(potentialNewSize/1024/1024).toFixed(1)}MB\n\nPor favor, selecione apenas os manuais essenciais para o diagnóstico atual.`);
       setIsProcessingFiles(false);
       return;
     }
@@ -198,7 +199,7 @@ const App: React.FC = () => {
       const errMessage = error.message || "";
       
       // Handle the explicit browser limit error thrown by service
-      if (errMessage.includes("Limitação do Navegador")) {
+      if (errMessage.includes("Limitação")) {
         errorMessage = errMessage;
       }
       // Catch specific "Invalid string length" error from V8 engine
@@ -212,7 +213,7 @@ const App: React.FC = () => {
           errMessage.includes("token count exceeds") ||
           errMessage.includes("INVALID_ARGUMENT")
       ) {
-        errorMessage = "Limite de Leitura da IA Excedido (1 Milhão de Tokens). O conteúdo dos manuais anexados é muito extenso para a IA processar de uma vez. Por favor, remova alguns arquivos (especialmente manuais longos) e tente novamente.";
+        errorMessage = "⛔ ERRO DE CAPACIDADE (TOKENS): Os manuais enviados contêm mais texto do que a IA consegue ler de uma vez (Limite de 1 Milhão de Tokens).\n\nSOLUÇÃO: Remova arquivos da lista lateral até ficar abaixo de 30MB e tente novamente. Envie apenas os manuais da marca/modelo que você está consertando agora.";
       }
 
       setMessages(prev => prev.map(msg => 

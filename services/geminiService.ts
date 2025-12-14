@@ -53,12 +53,11 @@ export class GeminiService {
     files: UploadedFile[]
   ): AsyncGenerator<string, void, unknown> {
     try {
-      // Safety check for browser memory limit 
-      // 200MB of raw files results in approx 270MB base64 string + JSON overhead.
-      // JS String limit is often around 512MB, so 200MB raw is a safe upper bound.
+      // Safety check for Token Limit
+      // 30MB of raw PDF files is the heuristic limit to stay under ~1 Million tokens.
       const totalSize = files.reduce((acc, f) => acc + f.size, 0);
-      if (totalSize > 200 * 1024 * 1024) {
-         throw new Error("Limitação do Navegador: O tamanho total dos arquivos (PDFs) excede o que o navegador consegue processar (200MB). Por favor, remova alguns arquivos pesados para evitar travamentos.");
+      if (totalSize > 30 * 1024 * 1024) {
+         throw new Error("Limitação de Capacidade (IA): O tamanho total dos arquivos excede 30MB. Para garantir a leitura correta dos manuais dentro do limite de 1 Milhão de tokens, reduza a quantidade de arquivos.");
       }
 
       const contents: Content[] = [];
