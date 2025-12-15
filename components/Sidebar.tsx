@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { Upload, FileText, Trash2, Database, LogOut, Info, X, Loader2 } from 'lucide-react';
+import { Upload, FileText, Trash2, Database, LogOut, Info, X, Loader2, Lightbulb } from 'lucide-react';
 import { UploadedFile } from '../types';
+import { SuggestionsModal } from './SuggestionsModal';
 
 interface SidebarProps {
   files: UploadedFile[];
@@ -27,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -124,16 +126,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
          </div>
          
-         {/* Área de Logout */}
-         <div className="p-4 border-t border-slate-700 bg-slate-900">
+         {/* Botões de Ação para Técnico */}
+         <div className="p-4 border-t border-slate-700 bg-slate-900 space-y-2">
+            
+            {/* Botão de Sugestões */}
+            <button 
+              onClick={() => setShowSuggestions(true)}
+              className="w-full flex items-center justify-center gap-2 text-slate-200 hover:text-white py-2.5 transition-colors text-xs uppercase tracking-wider font-medium bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700"
+            >
+              <Lightbulb className="w-4 h-4 text-yellow-500" />
+              Enviar Sugestão
+            </button>
+
             <button 
               onClick={onLogout}
-              className="w-full flex items-center justify-center gap-2 text-slate-400 hover:text-white py-3 transition-colors text-xs uppercase tracking-wider font-medium hover:bg-slate-800 rounded-lg border border-transparent hover:border-slate-700"
+              className="w-full flex items-center justify-center gap-2 text-slate-400 hover:text-white py-2.5 transition-colors text-xs uppercase tracking-wider font-medium hover:bg-slate-800 rounded-lg border border-transparent hover:border-slate-700"
             >
               <LogOut className="w-4 h-4" />
               Sair / Trocar Usuário
             </button>
          </div>
+
+         {/* Modal de Sugestões */}
+         {showSuggestions && (
+           <SuggestionsModal onClose={() => setShowSuggestions(false)} />
+         )}
       </div>
     );
   }

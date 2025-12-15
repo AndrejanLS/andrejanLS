@@ -10,6 +10,8 @@ export interface Message {
   text: string;
   timestamp: number;
   isError?: boolean;
+  image?: string; // Base64 data string (raw)
+  imageMimeType?: string;
 }
 
 export interface UploadedFile {

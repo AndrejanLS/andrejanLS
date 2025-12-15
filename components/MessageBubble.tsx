@@ -31,13 +31,25 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         </div>
 
         {/* Content */}
-        <div className={`rounded-xl px-5 py-4 shadow-sm text-sm leading-relaxed overflow-hidden ${
+        <div className={`rounded-xl px-5 py-4 shadow-sm text-sm leading-relaxed overflow-hidden flex flex-col gap-2 ${
           isUser 
             ? 'bg-slate-700 text-slate-100 rounded-tr-none' 
             : message.isError
               ? 'bg-red-950/30 border border-red-900/50 text-red-200 rounded-tl-none'
               : 'bg-slate-800 border border-slate-700 text-slate-200 rounded-tl-none'
         }`}>
+          
+          {/* Render Image Attachment if exists */}
+          {message.image && (
+            <div className="mb-2 rounded-lg overflow-hidden border border-slate-600/50 bg-black/20">
+              <img 
+                src={`data:${message.imageMimeType || 'image/jpeg'};base64,${message.image}`} 
+                alt="Anexo do técnico" 
+                className="max-w-full h-auto max-h-64 object-contain mx-auto"
+              />
+            </div>
+          )}
+
           {isUser ? (
              <div className="whitespace-pre-wrap">{message.text}</div>
           ) : (
@@ -45,7 +57,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                <ReactMarkdown>{message.text}</ReactMarkdown>
             </div>
           )}
-          <div className={`text-[10px] mt-2 opacity-50 ${isUser ? 'text-right' : 'text-left'}`}>
+          <div className={`text-[10px] mt-1 opacity-50 ${isUser ? 'text-right' : 'text-left'}`}>
             {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
         </div>

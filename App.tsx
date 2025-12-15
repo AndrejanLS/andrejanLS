@@ -9,14 +9,6 @@ import { geminiService } from './services/geminiService';
 const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
 // Constants for file limits
-// CRITICAL ADJUSTMENT:
-// The Gemini 2.5 Flash model has a 1 Million Token Context Window.
-// - 1 Token ~= 4 chars.
-// - 1 Million Tokens ~= 4MB of pure raw text.
-// - PDF files have overhead (images, formatting), but dense technical manuals are text-heavy.
-// - 100MB of PDFs resulted in Token Limit Exceeded errors.
-// - We are lowering the limit to 30MB. This is a conservative heuristic to keep the
-//   extracted text payload under the ~1M token limit (approx 4MB pure text + overhead).
 const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB per file max
 const MAX_TOTAL_SIZE = 30 * 1024 * 1024; // 30MB total storage limit for context safety
 
@@ -146,7 +138,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, image?: { data: string; mimeType: string }) => {
     if (files.length === 0) {
       alert("A base de conhecimento está vazia. Contate o administrador.");
       return;
@@ -156,7 +148,9 @@ const App: React.FC = () => {
       id: generateId(),
       role: Role.USER,
       text: text,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      image: image?.data,
+      imageMimeType: image?.mimeType
     };
 
     // Add user message immediately
@@ -176,9 +170,10 @@ const App: React.FC = () => {
     try {
       // Consume the stream
       const stream = geminiService.sendMessageStream(
-        messages, // Pass current history (excluding the new user msg, as logic inside service handles construction)
+        messages, // Pass current history
         text,
-        files
+        files,
+        image // Pass current image
       );
 
       let accumulatedText = "";
